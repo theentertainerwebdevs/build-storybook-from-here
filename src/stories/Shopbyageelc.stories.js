@@ -1,55 +1,137 @@
+import { db } from '../config/firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useEffect, useCallback, useRef } from 'react';
 import { ShopByAgeElc } from './Shopbyageelc';
+import { useArgs } from 'storybook/preview-api';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 export default {
-  title: 'ELC/ShopByAge',
+  title: 'ELC/Shop By Age',
   component: ShopByAgeElc,
   parameters: {
     // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
     layout: 'fullscreen',
   },
-  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
-  tags: ['autodocs'],
+  argTypes: {
+    user: {
+      options: ['stories', 'hasina', 'shermin', 'sam'],
+      control: { type: 'select' },
+    },
+  },
 };
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const ShopByAgeElcContainer = {
   args: {
-    item1age: '0-3 ',
-    item1textunderage: 'months',
-    item1link: 'https://www.elc.co.uk/c/shop-by-age/0-3-months',
-    item1dataelementtype: 'hp-shop-age',
-    item1datapromotionindex: '1',
-    item1datapromotionname: '0-3 months',
-    item2age: '3-6 ',
-    item2textunderage: 'months',
-    item2link: 'https://www.elc.co.uk/c/shop-by-age/3-6-months',
-    item2dataelementtype: 'hp-shop-age',
-    item2datapromotionindex: '2',
-    item2datapromotionname: '3-6 months',
-    item3age: '6-12 ',
-    item3textunderage: 'months',
-    item3link: 'https://www.elc.co.uk/c/shop-by-age/6-12-months',
-    item3dataelementtype: 'hp-shop-age',
-    item3datapromotionindex: '3',
-    item3datapromotionname: '6-12 months',
-    item4age: '1-2 ',
-    item4textunderage: 'years',
-    item4link: 'https://www.elc.co.uk/c/shop-by-age/1-2-years',
-    item4dataelementtype: 'hp-shop-age',
-    item4datapromotionindex: '4',
-    item4datapromotionname: '1-2 Years',
-    item5age: '2-3 ',
-    item5textunderage: 'years',
-    item5link: 'https://www.elc.co.uk/c/shop-by-age/2-3-years',
-    item5dataelementtype: 'hp-shop-age',
-    item5datapromotionindex: '5',
-    item5datapromotionname: '2-3 Years',
-    item6age: '3-4 ',
-    item6textunderage: 'years',
-    item6link: 'https://www.elc.co.uk/c/shop-by-age/3-4-years',
-    item6dataelementtype: 'hp-shop-age',
-    item6datapromotionindex: '6',
-    item6datapromotionname: '3-4 Years',
+    user: 'stories',
+    item1age: '',
+    item1textunderage: '',
+    item1image: '',
+    item1imagealt: '',
+    item1link: '',
+    item2age: '',
+    item2textunderage: '',
+    item2image: '',
+    item2imagealt: '',
+    item2link: '',
+    item3age: '',
+    item3textunderage: '',
+    item3image: '',
+    item3imagealt: '',
+    item3link: '',
+    item4age: '',
+    item4textunderage: '',
+    item4image: '',
+    item4imagealt: '',
+    item4link: '',
+    item5age: '',
+    item5textunderage: '',
+    item5image: '',
+    item5imagealt: '',
+    item5link: '',
+    item6age: '',
+    item6textunderage: '',
+    item6image: '',
+    item6imagealt: '',
+    item6link: '',
   },
+  render: function Render(args) {
+  const [currentArgs, updateArgs] = useArgs();
+
+  const isLoadingRef = useRef(false);       // prevents writing during load
+  const lastUserRef = useRef(args.user);    // track selected user
+  const lastSyncedData = useRef({});        // prevent write loops
+
+  // -------------------------------------------------------
+  // 1. LOAD DATA FROM SELECTED USER
+  // -------------------------------------------------------
+  useEffect(() => {
+    const load = async () => {
+      isLoadingRef.current = true;  // BLOCK updates
+      lastUserRef.current = args.user;
+
+      try {
+        const docRef = doc(db, args.user, "elcshopbyage");
+        const snap = await getDoc(docRef);
+
+        if (snap.exists()) {
+          const firestoreData = snap.data();
+          lastSyncedData.current = firestoreData;
+
+          // Replace storybook args with loaded data
+          updateArgs({
+            ...currentArgs,
+            ...firestoreData,
+            user: args.user,
+          });
+        }
+      } catch (e) {
+        console.error("Firestore load error:", e);
+      }
+
+      isLoadingRef.current = false; // allow updates again
+    };
+
+    load();
+  }, [args.user]);
+
+
+  // -------------------------------------------------------
+  // 2. SYNC ONLY FIELD CHANGES (NOT USER CHANGE)
+  // -------------------------------------------------------
+  useEffect(() => {
+    if (isLoadingRef.current) return; // Don't sync during load
+
+    const selectedUser = lastUserRef.current;
+
+    // Don't sync if this change is caused by selecting a new user
+    if (currentArgs.user !== selectedUser) return;
+
+    // Remove user field before writing
+    const { user, ...fields } = currentArgs;
+
+    // Prevent re-writing unchanged data
+    const prevFields = lastSyncedData.current;
+    const changed = Object.entries(fields).some(
+      ([k, v]) => prevFields[k] !== v
+    );
+    if (!changed) return;
+
+    lastSyncedData.current = fields;
+
+    const send = async () => {
+      try {
+        const docRef = doc(db, selectedUser, "elcshopbyage");
+        await updateDoc(docRef, fields);
+        console.log("UPDATED:", selectedUser, fields);
+      } catch (e) {
+        console.error("Firestore update error:", e);
+      }
+    };
+
+    send();
+  }, [currentArgs]);
+    
+        return <ShopByAgeElc {...args} />;
+      },
 };

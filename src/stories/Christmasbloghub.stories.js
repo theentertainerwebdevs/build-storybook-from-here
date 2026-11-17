@@ -1,4 +1,8 @@
+import { db } from '../config/firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useEffect, useCallback, useRef } from 'react';
 import { ChristmasBlogHub } from './Christmasbloghub';
+import { useArgs } from 'storybook/preview-api';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 export default {
@@ -8,30 +12,114 @@ export default {
     // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
     layout: 'centered',
   },
-  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
-  tags: ['autodocs'],
+  argTypes: {
+    user: {
+      options: ['stories', 'hasina', 'shermin', 'sam'],
+      control: { type: 'select' },
+    },
+  },
 };
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const ChristmasBlogHubSection = {
   args: {
-    desktopimage: 'https://www.thetoyshop.com/medias/christmas-hub-blog-ddesktop.png?context=bWFzdGVyfHJvb3R8MTYzMTU1fGltYWdlL3BuZ3xhRGt3TDJnMk5DOHhNall3T1RBd09UazBNalUxT0M5amFISnBjM1J0WVhNdGFIVmlMV0pzYjJjdFpHUmxjMnQwYjNBdWNHNW58NmI0NDI3MThlNWE0MGY1NGViM2E1ZWYzNjNjYzgxNTIxYzUwOWRkYzAzMTc0YzkxZmQ0NmEzNDg5MmI5ZmEwOA',
-    mobileimage: 'https://www.thetoyshop.com/medias/christmas-hub-blog-mobile.png?context=bWFzdGVyfHJvb3R8MTU2OTc0fGltYWdlL3BuZ3xhR1ptTDJoaE1pOHhNall3T1RBeE1EQXdPREE1TkM5amFISnBjM1J0WVhNdGFIVmlMV0pzYjJjdGJXOWlhV3hsTG5CdVp3fGY3MjI4NTJhMGQ4ZjAxMmZmNTA5ODhmMzMxNDExYjVmZmEwNjY0ZmFlMzA4MzU1YjJmYTMwZDE4MjY0ZjdmZTc',
-    alt: 'Christmas Blog Hub',
-    titlelink: 'https://www.thetoyshop.com/childhood-adventures/christmas-blogs',
-    titlelinktitletext: 'Christmas Blogs',
-    titlelinkactiontext: 'Read Here',
-    link1: 'https://www.thetoyshop.com/childhood-adventures/top-10-christmas-toys-for-2025',
-    link1text: 'Top 10 Christmas Toys for 2025',
-    link2: 'https://www.thetoyshop.com/childhood-adventures/ultimate-christmas-shopping-checklist',
-    link2text: 'Ultimate Christmas Shopping Checklist',
-    link3: 'https://www.thetoyshop.com/childhood-adventures/29-christmas-goodie-bag-ideas-for-special-gifting',
-    link3text: '29 Christmas Goodie Bag Ideas for Special Gifting',
-    link4: 'https://www.thetoyshop.com/childhood-adventures/your-guide-to-blind-bags-this-christmas',
-    link4text: 'Your Guide To Blind Bags This Christmas',
-    link5: 'https://www.thetoyshop.com/childhood-adventures/what-goes-into-a-christmas-box',
-    link5text: 'What Goes Into A Christmas Box?',
-    link6: 'https://www.thetoyshop.com/childhood-adventures/fun-christmas-craft-ideas-for-kids',
-    link6text: 'Fun Christmas Craft Ideas for Kids!',
+    user: 'stories',
+    desktopimage: '',
+    mobileimage: '',
+    alt: '',
+    titlelink: '',
+    titlelinktitletext: '',
+    titlelinkactiontext: '',
+    link1: '',
+    link1text: '',
+    link2: '',
+    link2text: '',
+    link3: '',
+    link3text: '',
+    link4: '',
+    link4text: '',
+    link5: '',
+    link5text: '',
+    link6: '',
+    link6text: '',
   },
+  render: function Render(args) {
+  const [currentArgs, updateArgs] = useArgs();
+
+  const isLoadingRef = useRef(false);       // prevents writing during load
+  const lastUserRef = useRef(args.user);    // track selected user
+  const lastSyncedData = useRef({});        // prevent write loops
+
+  // -------------------------------------------------------
+  // 1. LOAD DATA FROM SELECTED USER
+  // -------------------------------------------------------
+  useEffect(() => {
+    const load = async () => {
+      isLoadingRef.current = true;  // BLOCK updates
+      lastUserRef.current = args.user;
+
+      try {
+        const docRef = doc(db, args.user, "christmasbloghub");
+        const snap = await getDoc(docRef);
+
+        if (snap.exists()) {
+          const firestoreData = snap.data();
+          lastSyncedData.current = firestoreData;
+
+          // Replace storybook args with loaded data
+          updateArgs({
+            ...currentArgs,
+            ...firestoreData,
+            user: args.user,
+          });
+        }
+      } catch (e) {
+        console.error("Firestore load error:", e);
+      }
+
+      isLoadingRef.current = false; // allow updates again
+    };
+
+    load();
+  }, [args.user]);
+
+
+  // -------------------------------------------------------
+  // 2. SYNC ONLY FIELD CHANGES (NOT USER CHANGE)
+  // -------------------------------------------------------
+  useEffect(() => {
+    if (isLoadingRef.current) return; // Don't sync during load
+
+    const selectedUser = lastUserRef.current;
+
+    // Don't sync if this change is caused by selecting a new user
+    if (currentArgs.user !== selectedUser) return;
+
+    // Remove user field before writing
+    const { user, ...fields } = currentArgs;
+
+    // Prevent re-writing unchanged data
+    const prevFields = lastSyncedData.current;
+    const changed = Object.entries(fields).some(
+      ([k, v]) => prevFields[k] !== v
+    );
+    if (!changed) return;
+
+    lastSyncedData.current = fields;
+
+    const send = async () => {
+      try {
+        const docRef = doc(db, selectedUser, "christmasbloghub");
+        await updateDoc(docRef, fields);
+        console.log("UPDATED:", selectedUser, fields);
+      } catch (e) {
+        console.error("Firestore update error:", e);
+      }
+    };
+
+    send();
+  }, [currentArgs]);
+    
+        return <ChristmasBlogHub {...args} />;
+      },
 };

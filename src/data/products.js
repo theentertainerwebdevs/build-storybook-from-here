@@ -15,6 +15,7 @@ export const brands = [
   { name: "Naruto", count: 43, color: "bg-blue-500" },
   { name: "One Piece", count: 38, color: "bg-red-600" },
   { name: "Lego", count: 58, color: "bg-purple-300" },
+  { name: "Godzilla x Kon", count: 58, color: "bg-blue-300" },
 ]
 
 export const ageGroups = [
@@ -68,7 +69,7 @@ export const products = [
     ],
     video: "https://www.thetoyshop.com/medias/lego-test-video.mp4?context=bWFzdGVyfHJvb3R8MTg0NTg0MXx2aWRlby9tcDR8YUdVd0wyZ3laUzh4TWpVeU1qWTVNVFE1TXpreE9DOXNaV2R2TFhSbGMzUXRkbWxrWlc4dWJYQTB8MzE5MWY1M2FiYmQ4ODA4NDc4NmYzMDUwOWU5MmZiMzIyNTQxNDYwZTBhMzI3NmUyODNmMDIzYjA1YWMzZTRiYQ",
     isNew: true,
-    isBestseller: false,
+    isBestseller: true,
     ageGroup: "5-8 years",
     features: ["Articulated", "With Accessories"],
     size: "6 inches",

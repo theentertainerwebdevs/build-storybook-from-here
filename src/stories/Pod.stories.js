@@ -1,8 +1,12 @@
+import { db } from '../config/firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useEffect, useCallback, useRef } from 'react';
 import { Pod } from './Pod';
+import { useArgs } from 'storybook/preview-api';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 export default {
-  title: 'Home/Pod',
+  title: 'Home/Pods/Pod',
   component: Pod,
   argTypes: {
     position: {
@@ -10,31 +14,126 @@ export default {
       control: { type: 'radio' },
       defaultValue: 'center',
     },
+    user: {
+      options: ['stories', 'hasina', 'shermin', 'sam'],
+      control: { type: 'select' },
+    },
+    buttonicon: {
+      options: [
+        "basket",
+        "glasses",
+        "football",
+        "pencil",
+        "plane",
+      ],
+      control: "radio",
+    },
   },
   parameters: {
     // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
     layout: 'centered',
   },
-  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
-  tags: ['autodocs'],
 };
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const PodItem = {
   args: {
-    image: 'https://www.thetoyshop.com/medias/Web-Homepage-Pod-w350x350h-HotWheels.jpg?context=bWFzdGVyfHJvb3R8MjEwMTI4fGltYWdlL2pwZWd8YURNeEwyZzVaUzh4TWpZeE16WTFOVE01TmpNNE1pOVhaV0lnU0c5dFpYQmhaMlVnVUc5a0xYY3pOVEI0TXpVd2FGOUliM1JYYUdWbGJITXVhbkJufGIwNjdhZDE4M2U0YzE1MjYyYjQ4YjYwMzgyNDQ5MzA1NmNlOWYzYjUxZTQ0N2Q2NDc2NTViZWI4ZDQwMjVmNWQ',
-    imagealt: 'Hot Wheels',
-    tagline: 'Up To 20% Off',
-    backgroundcolor: 'linear-gradient(213deg,rgba(0, 86, 173, 1) 0%, rgba(0, 153, 215, 1) 35%, rgba(0, 204, 239, 1) 100%)',
-    textcolor: '#fff',
-    link: 'https://www.thetoyshop.com/brands/hot-wheels',
-    linktext: 'Upto 20% OFF',
-    logoimage: 'https://www.thetoyshop.com/medias/Hot-Wheels-logo-2-.png?context=bWFzdGVyfHJvb3R8NDE4NjR8aW1hZ2UvcG5nfGFHWXpMMmc1TkM4eE1qWXlNREV4T1RJeE1qQTJNaTlJYjNRdFYyaGxaV3h6TFd4dloyOGdLRElwTG5CdVp3fDhhYzNhMDI1OTcyNjAzY2U3ZTYxNmRiZWNkZjRjNDkzNGRmZGYzYTcxYWMwMTVhZGZjZGUwOTdiMWVjOWU5NjI',
-    logoimagealt: 'Hot Wheels Logo',
-    logoheight: '50px',
-    position: 'center',
-    dataElementType: 'homepage-expanded-carousel',
-    dataPromotionName: 'Pod-Hot Wheels',
-    dataPromotionIndex: '1',
+    user: 'stories',
+    image: '',
+    imagealt: '',
+    tagline: '',
+    backgroundcolor: '',
+    textcolor: '',
+    link: '',
+    linktext: '',
+    buttonbackgroundcolor: '',
+    buttontextcolor: '',
+    buttonicon: 'basket',
+    logoimage: '',
+    logoimagealt: '',
+    logoheight: '',
+    position: '',
+    dataElementType: '',
+    dataPromotionName: '',
+    dataPromotionIndex: '',
   },
+  render: function Render(args) {
+  const [currentArgs, updateArgs] = useArgs();
+
+  const isLoadingRef = useRef(false);       // prevents writing during load
+  const lastUserRef = useRef(args.user);    // track selected user
+  const lastSyncedData = useRef({});        // prevent write loops
+
+  // -------------------------------------------------------
+  // 1. LOAD DATA FROM SELECTED USER
+  // -------------------------------------------------------
+  useEffect(() => {
+    const load = async () => {
+      isLoadingRef.current = true;  // BLOCK updates
+      lastUserRef.current = args.user;
+
+      try {
+        const docRef = doc(db, args.user, "pod");
+        const snap = await getDoc(docRef);
+
+        if (snap.exists()) {
+          const firestoreData = snap.data();
+          lastSyncedData.current = firestoreData;
+
+          // Replace storybook args with loaded data
+          updateArgs({
+            ...currentArgs,
+            ...firestoreData,
+            user: args.user,
+          });
+        }
+      } catch (e) {
+        console.error("Firestore load error:", e);
+      }
+
+      isLoadingRef.current = false; // allow updates again
+    };
+
+    load();
+  }, [args.user]);
+
+
+  // -------------------------------------------------------
+  // 2. SYNC ONLY FIELD CHANGES (NOT USER CHANGE)
+  // -------------------------------------------------------
+  useEffect(() => {
+    if (isLoadingRef.current) return; // Don't sync during load
+
+    const selectedUser = lastUserRef.current;
+
+    // Don't sync if this change is caused by selecting a new user
+    if (currentArgs.user !== selectedUser) return;
+
+    // Remove user field before writing
+    const { user, ...fields } = currentArgs;
+
+    // Prevent re-writing unchanged data
+    const prevFields = lastSyncedData.current;
+    const changed = Object.entries(fields).some(
+      ([k, v]) => prevFields[k] !== v
+    );
+    if (!changed) return;
+
+    lastSyncedData.current = fields;
+
+    const send = async () => {
+      try {
+        const docRef = doc(db, selectedUser, "pod");
+        await updateDoc(docRef, fields);
+        console.log("UPDATED:", selectedUser, fields);
+      } catch (e) {
+        console.error("Firestore update error:", e);
+      }
+    };
+
+    send();
+  }, [currentArgs]);
+  
+      return <Pod {...args} />;
+    },
 };

@@ -1,31 +1,135 @@
+import { db } from '../config/firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useEffect, useRef } from 'react';
 import { HalfSplitHero } from './Halfsplithero';
+import { useArgs } from 'storybook/preview-api';
 
-// More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 export default {
-  title: 'Home/Half Split Hero',
+  title: 'Home/Hero/Half Split Hero',
   component: HalfSplitHero,
   parameters: {
-    // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
     layout: 'centered',
   },
-  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
-  tags: ['autodocs'],
+  argTypes: {
+    background: {
+      control: 'color',
+    },
+    user: {
+      options: ['stories', 'hasina', 'shermin', 'sam'],
+      control: { type: 'select' },
+    },
+  },
 };
 
-// More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const HalfAndHalfHero = {
   args: {
+    user: "stories",
+    flipped: false,
     image: '',
-    imagealt:'',
-    videosrc: 'https://www.thetoyshop.com/medias/2025-p9-tonies-2-announcement-video.mp4?context=bWFzdGVyfHJvb3R8Njk5NzgyNXx2aWRlby9xdWlja3RpbWV8YURrd0wyZzBOQzh4TWpVNE1qY3dORFUwTlRneU1pOHlNREkxTFhBNUxYUnZibWxsY3kweUxXRnVibTkxYm1ObGJXVnVkQzEyYVdSbGJ5NXRjRFF8ZGE2NDY2YjMwM2M4YmU4ZTdkMjlmOGJmNzcwODljYzFlZjEwY2FiZTAxOWI2MWZhNmZlMGMyYzFhM2Q5YzA1Yw',
-    background: 'linear-gradient(213deg,rgba(0, 86, 173, 1) 0%, rgba(0, 153, 215, 1) 35%, rgba(0, 204, 239, 1) 100%)',
+    imagealt: '',
+    videosrc: '',
+    background: '',
     textColor: '#FFFFFF',
+    logo: '',
+    logoalt: '',
     headline: 'New Toniebox 2 with Tonieplay',
     tagline: 'Get ready for screen-free stories, songs and more!',
     link: 'https://www.thetoyshop.com/brands/tonies',
     linktext: 'Pre-order',
+    linkTextColor: '#fff',
+    linkTextColorHover: '#fff',
+    linkBackground: '#009E44',
+    linkBackgroundHover: '#AFCB17',
+    linkBorderColor: '#DBE3FF',
+    linkBorderColorHover: '#DBE3FF',
+    termslink: 'https://www.thetoyshop.com/brands/tonies',
+    termslinktext: 'terms and conditions',
     dataElementType: 'hp-hero-area',
     datapromotionindex: '3',
     datapromotionname: 'Hero-3-Huffy',
   },
+
+  
+render: function Render(args) {
+  const [currentArgs, updateArgs] = useArgs();
+
+  const isLoadingRef = useRef(false);       // prevents writing during load
+  const lastUserRef = useRef(args.user);    // track selected user
+  const lastSyncedData = useRef({});        // prevent write loops
+
+  // -------------------------------------------------------
+  // 1. LOAD DATA FROM SELECTED USER
+  // -------------------------------------------------------
+  useEffect(() => {
+    const load = async () => {
+      isLoadingRef.current = true;  // BLOCK updates
+      lastUserRef.current = args.user;
+
+      try {
+        const docRef = doc(db, args.user, "halfsplithero");
+        const snap = await getDoc(docRef);
+
+        if (snap.exists()) {
+          const firestoreData = snap.data();
+          lastSyncedData.current = firestoreData;
+
+          // Replace storybook args with loaded data
+          updateArgs({
+            ...currentArgs,
+            ...firestoreData,
+            user: args.user,
+          });
+        }
+      } catch (e) {
+        console.error("Firestore load error:", e);
+      }
+
+      isLoadingRef.current = false; // allow updates again
+    };
+
+    load();
+  }, [args.user]);
+
+
+  // -------------------------------------------------------
+  // 2. SYNC ONLY FIELD CHANGES (NOT USER CHANGE)
+  // -------------------------------------------------------
+  useEffect(() => {
+    if (isLoadingRef.current) return; // Don't sync during load
+
+    const selectedUser = lastUserRef.current;
+
+    // Don't sync if this change is caused by selecting a new user
+    if (currentArgs.user !== selectedUser) return;
+
+    // Remove user field before writing
+    const { user, ...fields } = currentArgs;
+
+    // Prevent re-writing unchanged data
+    const prevFields = lastSyncedData.current;
+    const changed = Object.entries(fields).some(
+      ([k, v]) => prevFields[k] !== v
+    );
+    if (!changed) return;
+
+    lastSyncedData.current = fields;
+
+    const send = async () => {
+      try {
+        const docRef = doc(db, selectedUser, "halfsplithero");
+        await updateDoc(docRef, fields);
+        console.log("UPDATED:", selectedUser, fields);
+      } catch (e) {
+        console.error("Firestore update error:", e);
+      }
+    };
+
+    send();
+  }, [currentArgs]);
+
+
+  return <HalfSplitHero {...currentArgs} />;
+}
+
+
 };

@@ -1,31 +1,119 @@
+import { db } from '../config/firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useEffect, useCallback, useRef } from 'react';
 import { MarketingBanners } from './Marketingbanners';
+import { useArgs } from 'storybook/preview-api';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 export default {
-  title: 'Home/MarketingBanners',
+  title: 'Home/Marketing Banners',
   component: MarketingBanners,
   parameters: {
     // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
     layout: 'centered',
   },
-  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
-  tags: ['autodocs'],
+  argTypes: {
+    user: {
+      options: ['stories', 'hasina', 'shermin', 'sam'],
+      control: { type: 'select' },
+    },
+  },
 };
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const MarketingBannersHome = {
   args: {
-    banner1image: 'https://www.thetoyshop.com/medias/2025-present-finder-comp-tile-944x200px.jpg?context=bWFzdGVyfHJvb3R8MTMyMzYzfGltYWdlL2pwZWd8YURkbUwyZ3pOQzh4TWpVMk5qSXhNamN6T1RFd01pOHlNREkxTFhCeVpYTmxiblF0Wm1sdVpHVnlMV052YlhBdGRHbHNaUzA1TkRSNE1qQXdjSGd1YW5CbnxmZTliZDExOTY0ZjBlZjliZmJmZTgzMGM1NmFlYmQ1N2ZiMDRjNzBlNjgyYmVlMzc0MmMwMTg1MzQ1ODY0Nzk3',
-    banner1alt: 'Find the perfect gift with our present finder',
-    banner1link: 'https://www.thetoyshop.com/presentfinder',
-    banner2image: 'https://www.thetoyshop.com/medias/Reduced-Comp-Tile-944x200px.jpg?context=bWFzdGVyfHJvb3R8MTQ4MTIzfGltYWdlL2pwZWd8YURrMkwyaGtNUzh4TWpVM05UQXpORGN3TXprd01pOVNaV1IxWTJWa1gwTnZiWEFnVkdsc1pWODVORFI0TWpBd2NIZ3VhbkJufDc2MzRlZmI5NzAyYmU1ZjZiZmI0NTk3ZTA1YjJiM2M3NjUyZTc4NDY2YjQ1M2RlZDIwMDk5ZTA0OGZiN2RiOTE',
-    banner2alt: 'Reduced to Clear',
-    banner2link: 'https://www.thetoyshop.com/c/reduced-to-clear',
-    banner1dataElementType: 'homepage-banner-1',
-    banner1datapromotionindex: '1',
-    banner1datapromotionname: 'Banner-1-Present-Finder',
-    banner2dataElementType: 'homepage-banner-2',
-    banner2datapromotionindex: '2',
-    banner2datapromotionname: 'Banner-2-Reduced-to-Clear',
+    user: 'stories',
+    banner1image: '',
+    banner1alt: '',
+    banner1link: '',
+    banner2image: '',
+    banner2alt: '',
+    banner2link: '',
+    banner1dataElementType: '',
+    banner1datapromotionindex: '',
+    banner1datapromotionname: '',
+    banner2dataElementType: '',
+    banner2datapromotionindex: '',
+    banner2datapromotionname: '',
   },
+  render: function Render(args) {
+  const [currentArgs, updateArgs] = useArgs();
+
+  const isLoadingRef = useRef(false);       // prevents writing during load
+  const lastUserRef = useRef(args.user);    // track selected user
+  const lastSyncedData = useRef({});        // prevent write loops
+
+  // -------------------------------------------------------
+  // 1. LOAD DATA FROM SELECTED USER
+  // -------------------------------------------------------
+  useEffect(() => {
+    const load = async () => {
+      isLoadingRef.current = true;  // BLOCK updates
+      lastUserRef.current = args.user;
+
+      try {
+        const docRef = doc(db, args.user, "marketingbanners");
+        const snap = await getDoc(docRef);
+
+        if (snap.exists()) {
+          const firestoreData = snap.data();
+          lastSyncedData.current = firestoreData;
+
+          // Replace storybook args with loaded data
+          updateArgs({
+            ...currentArgs,
+            ...firestoreData,
+            user: args.user,
+          });
+        }
+      } catch (e) {
+        console.error("Firestore load error:", e);
+      }
+
+      isLoadingRef.current = false; // allow updates again
+    };
+
+    load();
+  }, [args.user]);
+
+
+  // -------------------------------------------------------
+  // 2. SYNC ONLY FIELD CHANGES (NOT USER CHANGE)
+  // -------------------------------------------------------
+  useEffect(() => {
+    if (isLoadingRef.current) return; // Don't sync during load
+
+    const selectedUser = lastUserRef.current;
+
+    // Don't sync if this change is caused by selecting a new user
+    if (currentArgs.user !== selectedUser) return;
+
+    // Remove user field before writing
+    const { user, ...fields } = currentArgs;
+
+    // Prevent re-writing unchanged data
+    const prevFields = lastSyncedData.current;
+    const changed = Object.entries(fields).some(
+      ([k, v]) => prevFields[k] !== v
+    );
+    if (!changed) return;
+
+    lastSyncedData.current = fields;
+
+    const send = async () => {
+      try {
+        const docRef = doc(db, selectedUser, "marketingbanners");
+        await updateDoc(docRef, fields);
+        console.log("UPDATED:", selectedUser, fields);
+      } catch (e) {
+        console.error("Firestore update error:", e);
+      }
+    };
+
+    send();
+  }, [currentArgs]);
+    
+        return <MarketingBanners {...args} />;
+      },
 };

@@ -1,29 +1,419 @@
+import { db } from '../config/firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useEffect, useCallback, useRef } from 'react';
 import { PodsCarousel } from './Podscarousel';
+import { useArgs } from 'storybook/preview-api';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 export default {
-  title: 'Home/PodsCarousel',
+  title: 'Home/Pods/Final Pods Carousel',
   component: PodsCarousel,
   parameters: {
     // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
     layout: 'centered',
   },
-  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
-  tags: ['autodocs'],
+  argTypes: {
+    user: {
+      options: ['stories', 'hasina', 'shermin', 'sam'],
+      control: { type: 'select' },
+    },
+    positionNumber1: { control: { type: 'number', min: 1, max: 10 }, name: 'Pod 1 Position Number',},
+    positionNumber2: { control: { type: 'number', min: 1, max: 10 } },
+    positionNumber3: { control: { type: 'number', min: 1, max: 10 } },
+    positionNumber4: { control: { type: 'number', min: 1, max: 10 } },
+    positionNumber5: { control: { type: 'number', min: 1, max: 10 } },
+    positionNumber6: { control: { type: 'number', min: 1, max: 10 } },
+    positionNumber7: { control: { type: 'number', min: 1, max: 10 } },
+    positionNumber8: { control: { type: 'number', min: 1, max: 10 } },
+    positionNumber9: { control: { type: 'number', min: 1, max: 10 } },
+    positionNumber10: { control: { type: 'number', min: 1, max: 10 } },
+     image1: {name: 'Pod 1 Image'},
+    pod1buttonicon: {
+    options: [
+      "basket",
+      "glasses",
+      "football",
+      "pencil",
+      "plane",
+    ],
+    control: "radio",
+  },
+  pod2buttonicon: {
+    options: [
+      "basket",
+      "glasses",
+      "football",
+      "pencil",
+      "plane",
+    ],
+    control: "radio",
+  },
+  pod3buttonicon: {
+    options: [
+      "basket",
+      "glasses",
+      "football",
+      "pencil",
+      "plane",
+    ],
+    control: "radio",
+  },
+  pod4buttonicon: {
+    options: [
+      "basket",
+      "glasses",
+      "football",
+      "pencil",
+      "plane",
+    ],
+    control: "radio",
+  },
+  pod5buttonicon: {
+    options: [
+      "basket",
+      "glasses",
+      "football",
+      "pencil",
+      "plane",
+    ],
+    control: "radio",
+  },
+  pod6buttonicon: {
+    options: [
+      "basket",
+      "glasses",
+      "football",
+      "pencil",
+      "plane",
+    ],
+    control: "radio",
+  },
+  pod7buttonicon: {
+    options: [
+      "basket",
+      "glasses",
+      "football",
+      "pencil",
+      "plane",
+    ],
+    control: "radio",
+  },
+  pod8buttonicon: {
+    options: [
+      "basket",
+      "glasses",
+      "football",
+      "pencil",
+      "plane",
+    ],
+    control: "radio",
+  },
+  pod9buttonicon: {
+    options: [
+      "basket",
+      "glasses",
+      "football",
+      "pencil",
+      "plane",
+    ],
+    control: "radio",
+  },
+  pod10buttonicon: {
+    options: [
+      "basket",
+      "glasses",
+      "football",
+      "pencil",
+      "plane",
+    ],
+    control: "radio",
+  },
+  },
 };
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const HomeCarouselPods = {
   args: {
-    podscarouselfirstslide: '<a class="pod has-tagline" href="https://www.thetoyshop.com/brands/hot-wheels" title="Hot Wheels" data-element-type="homepage-expanded-carousel" data-promotion-name="Pod-Hot Wheels" data-promotion-index="1" data-gtm-vis-first-on-screen8511273_2666="2415687" data-gtm-vis-total-visible-time8511273_2666="100" data-gtm-vis-has-fired8511273_2666="1" style="background: linear-gradient(213deg, rgb(0, 86, 173) 0%, rgb(0, 153, 215) 35%, rgb(0, 204, 239) 100%); color: rgb(255, 255, 255);"><div class="pod-image-container"><img class="item" alt="Hot Wheels" title="Hot Wheels" src="https://www.thetoyshop.com/medias/Web-Homepage-Pod-w350x350h-HotWheels.jpg?context=bWFzdGVyfHJvb3R8MjEwMTI4fGltYWdlL2pwZWd8YURNeEwyZzVaUzh4TWpZeE16WTFOVE01TmpNNE1pOVhaV0lnU0c5dFpYQmhaMlVnVUc5a0xYY3pOVEI0TXpVd2FGOUliM1JYYUdWbGJITXVhbkJufGIwNjdhZDE4M2U0YzE1MjYyYjQ4YjYwMzgyNDQ5MzA1NmNlOWYzYjUxZTQ0N2Q2NDc2NTViZWI4ZDQwMjVmNWQ"><div class="logo undefined"><img alt="Hot Wheels Logo" title="Hot Wheels Logo" src="https://www.thetoyshop.com/medias/Hot-Wheels-logo-2-.png?context=bWFzdGVyfHJvb3R8NDE4NjR8aW1hZ2UvcG5nfGFHWXpMMmc1TkM4eE1qWXlNREV4T1RJeE1qQTJNaTlJYjNRdFYyaGxaV3h6TFd4dloyOGdLRElwTG5CdVp3fDhhYzNhMDI1OTcyNjAzY2U3ZTYxNmRiZWNkZjRjNDkzNGRmZGYzYTcxYWMwMTVhZGZjZGUwOTdiMWVjOWU5NjI" style="height: 50px;"></div></div><span>Up To 20% Off</span><button class="hero-button" href="https://www.thetoyshop.com/brands/hot-wheels"><span class="swoosh-container"><span class="star-start"><svg fill="currentColor" height="11" viewBox="0 0 11 11" width="11" xmlns="http://www.w3.org/2000/svg"><path d="M4.23539 2.16758C4.31585 1.75612 4.83196 1.6292 5.09362 1.92958L6.64272 3.65653L8.92869 3.36308C9.33686 3.31475 9.62105 3.7548 9.41431 4.12022L8.26344 6.1095L9.24532 8.18833C9.41411 8.56311 9.07604 8.98116 8.67962 8.89652L6.43413 8.40043L4.74982 9.98635C4.45362 10.2631 3.94852 10.0788 3.90018 9.67067L3.67114 7.38306L1.6601 6.27065C1.29468 6.06391 1.31163 5.54034 1.6864 5.37155L3.81205 4.44154L4.23539 2.16758Z" fill-opacity="0.5"></path></svg></span><span class="swoosh"> </span></span>Upto 20% OFF<span class="basket-icon"><svg fill="currentColor" height="18" viewBox="0 0 22 18" width="22" xmlns="http://www.w3.org/2000/svg"><path d="M21.2401 7.57V8.14C21.2401 8.38 21.1601 8.58 20.9901 8.75C20.8201 8.92 20.6201 9 20.3801 9H20.0901L19.1601 15.57C19.0901 16 18.8901 16.35 18.5701 16.63C18.2501 16.9 17.8701 17.04 17.4401 17.04H4.36006C3.93006 17.04 3.55006 16.9 3.23006 16.63C2.91006 16.35 2.71006 16 2.64006 15.57L1.71006 9H1.42006C1.18006 9 0.980059 8.92 0.810059 8.75C0.640059 8.58 0.560059 8.38 0.560059 8.14V7.57C0.560059 7.33 0.640059 7.13 0.810059 6.96C0.980059 6.79 1.18006 6.71 1.42006 6.71H3.83006L7.67006 1.43C7.86006 1.17 8.11006 1.01 8.42006 0.960001C8.73006 0.910001 9.02006 0.980002 9.28006 1.18C9.54006 1.37 9.70006 1.62 9.75006 1.93C9.80006 2.24 9.73006 2.53 9.53006 2.79L6.66006 6.71H15.1401L12.2701 2.79C12.0801 2.53 12.0101 2.24 12.0501 1.93C12.1001 1.62 12.2501 1.37 12.5201 1.18C12.7801 0.990002 13.0701 0.920001 13.3801 0.960001C13.6901 1.01 13.9401 1.16 14.1301 1.43L17.9701 6.71H20.3801C20.6201 6.71 20.8201 6.79 20.9901 6.96C21.1601 7.13 21.2401 7.33 21.2401 7.57ZM7.73006 13.89V9.87C7.73006 9.63 7.65006 9.43 7.48006 9.26C7.31006 9.09 7.11006 9.01 6.87006 9.01C6.63006 9.01 6.43006 9.09 6.26006 9.26C6.09006 9.43 6.01006 9.63 6.01006 9.87V13.89C6.01006 14.13 6.09006 14.33 6.26006 14.5C6.43006 14.67 6.63006 14.75 6.87006 14.75C7.11006 14.75 7.31006 14.67 7.48006 14.5C7.65006 14.33 7.73006 14.13 7.73006 13.89ZM11.7501 13.89V9.87C11.7501 9.63 11.6701 9.43 11.5001 9.26C11.3301 9.09 11.1301 9.01 10.8901 9.01C10.6501 9.01 10.4501 9.09 10.2801 9.26C10.1101 9.43 10.0301 9.63 10.0301 9.87V13.89C10.0301 14.13 10.1101 14.33 10.2801 14.5C10.4501 14.67 10.6501 14.75 10.8901 14.75C11.1301 14.75 11.3301 14.67 11.5001 14.5C11.6701 14.33 11.7501 14.13 11.7501 13.89ZM15.7701 13.89V9.87C15.7701 9.63 15.6901 9.43 15.5201 9.26C15.3501 9.09 15.1501 9.01 14.9101 9.01C14.6701 9.01 14.4701 9.09 14.3001 9.26C14.1301 9.43 14.0501 9.63 14.0501 9.87V13.89C14.0501 14.13 14.1301 14.33 14.3001 14.5C14.4701 14.67 14.6701 14.75 14.9101 14.75C15.1501 14.75 15.3501 14.67 15.5201 14.5C15.6901 14.33 15.7701 14.13 15.7701 13.89Z"></path></svg></span><span class="star-end"><svg fill="currentColor" height="11" viewBox="0 0 11 11" width="11" xmlns="http://www.w3.org/2000/svg"><path d="M4.23539 2.16758C4.31585 1.75612 4.83196 1.6292 5.09362 1.92958L6.64272 3.65653L8.92869 3.36308C9.33686 3.31475 9.62105 3.7548 9.41431 4.12022L8.26344 6.1095L9.24532 8.18833C9.41411 8.56311 9.07604 8.98116 8.67962 8.89652L6.43413 8.40043L4.74982 9.98635C4.45362 10.2631 3.94852 10.0788 3.90018 9.67067L3.67114 7.38306L1.6601 6.27065C1.29468 6.06391 1.31163 5.54034 1.6864 5.37155L3.81205 4.44154L4.23539 2.16758Z" fill-opacity="0.5"></path></svg></span></button></a>',
-    podscarouselsecondslide: '<a class="pod has-tagline" href="https://www.thetoyshop.com/brands/hot-wheels" title="Hot Wheels" data-element-type="homepage-expanded-carousel" data-promotion-name="Pod-Hot Wheels" data-promotion-index="1" data-gtm-vis-first-on-screen8511273_2666="2415687" data-gtm-vis-total-visible-time8511273_2666="100" data-gtm-vis-has-fired8511273_2666="1" style="background: linear-gradient(213deg, rgb(0, 86, 173) 0%, rgb(0, 153, 215) 35%, rgb(0, 204, 239) 100%); color: rgb(255, 255, 255);"><div class="pod-image-container"><img class="item" alt="Hot Wheels" title="Hot Wheels" src="https://www.thetoyshop.com/medias/Web-Homepage-Pod-w350x350h-HotWheels.jpg?context=bWFzdGVyfHJvb3R8MjEwMTI4fGltYWdlL2pwZWd8YURNeEwyZzVaUzh4TWpZeE16WTFOVE01TmpNNE1pOVhaV0lnU0c5dFpYQmhaMlVnVUc5a0xYY3pOVEI0TXpVd2FGOUliM1JYYUdWbGJITXVhbkJufGIwNjdhZDE4M2U0YzE1MjYyYjQ4YjYwMzgyNDQ5MzA1NmNlOWYzYjUxZTQ0N2Q2NDc2NTViZWI4ZDQwMjVmNWQ"><div class="logo undefined"><img alt="Hot Wheels Logo" title="Hot Wheels Logo" src="https://www.thetoyshop.com/medias/Hot-Wheels-logo-2-.png?context=bWFzdGVyfHJvb3R8NDE4NjR8aW1hZ2UvcG5nfGFHWXpMMmc1TkM4eE1qWXlNREV4T1RJeE1qQTJNaTlJYjNRdFYyaGxaV3h6TFd4dloyOGdLRElwTG5CdVp3fDhhYzNhMDI1OTcyNjAzY2U3ZTYxNmRiZWNkZjRjNDkzNGRmZGYzYTcxYWMwMTVhZGZjZGUwOTdiMWVjOWU5NjI" style="height: 50px;"></div></div><span>Up To 20% Off</span><button class="hero-button" href="https://www.thetoyshop.com/brands/hot-wheels"><span class="swoosh-container"><span class="star-start"><svg fill="currentColor" height="11" viewBox="0 0 11 11" width="11" xmlns="http://www.w3.org/2000/svg"><path d="M4.23539 2.16758C4.31585 1.75612 4.83196 1.6292 5.09362 1.92958L6.64272 3.65653L8.92869 3.36308C9.33686 3.31475 9.62105 3.7548 9.41431 4.12022L8.26344 6.1095L9.24532 8.18833C9.41411 8.56311 9.07604 8.98116 8.67962 8.89652L6.43413 8.40043L4.74982 9.98635C4.45362 10.2631 3.94852 10.0788 3.90018 9.67067L3.67114 7.38306L1.6601 6.27065C1.29468 6.06391 1.31163 5.54034 1.6864 5.37155L3.81205 4.44154L4.23539 2.16758Z" fill-opacity="0.5"></path></svg></span><span class="swoosh"> </span></span>Upto 20% OFF<span class="basket-icon"><svg fill="currentColor" height="18" viewBox="0 0 22 18" width="22" xmlns="http://www.w3.org/2000/svg"><path d="M21.2401 7.57V8.14C21.2401 8.38 21.1601 8.58 20.9901 8.75C20.8201 8.92 20.6201 9 20.3801 9H20.0901L19.1601 15.57C19.0901 16 18.8901 16.35 18.5701 16.63C18.2501 16.9 17.8701 17.04 17.4401 17.04H4.36006C3.93006 17.04 3.55006 16.9 3.23006 16.63C2.91006 16.35 2.71006 16 2.64006 15.57L1.71006 9H1.42006C1.18006 9 0.980059 8.92 0.810059 8.75C0.640059 8.58 0.560059 8.38 0.560059 8.14V7.57C0.560059 7.33 0.640059 7.13 0.810059 6.96C0.980059 6.79 1.18006 6.71 1.42006 6.71H3.83006L7.67006 1.43C7.86006 1.17 8.11006 1.01 8.42006 0.960001C8.73006 0.910001 9.02006 0.980002 9.28006 1.18C9.54006 1.37 9.70006 1.62 9.75006 1.93C9.80006 2.24 9.73006 2.53 9.53006 2.79L6.66006 6.71H15.1401L12.2701 2.79C12.0801 2.53 12.0101 2.24 12.0501 1.93C12.1001 1.62 12.2501 1.37 12.5201 1.18C12.7801 0.990002 13.0701 0.920001 13.3801 0.960001C13.6901 1.01 13.9401 1.16 14.1301 1.43L17.9701 6.71H20.3801C20.6201 6.71 20.8201 6.79 20.9901 6.96C21.1601 7.13 21.2401 7.33 21.2401 7.57ZM7.73006 13.89V9.87C7.73006 9.63 7.65006 9.43 7.48006 9.26C7.31006 9.09 7.11006 9.01 6.87006 9.01C6.63006 9.01 6.43006 9.09 6.26006 9.26C6.09006 9.43 6.01006 9.63 6.01006 9.87V13.89C6.01006 14.13 6.09006 14.33 6.26006 14.5C6.43006 14.67 6.63006 14.75 6.87006 14.75C7.11006 14.75 7.31006 14.67 7.48006 14.5C7.65006 14.33 7.73006 14.13 7.73006 13.89ZM11.7501 13.89V9.87C11.7501 9.63 11.6701 9.43 11.5001 9.26C11.3301 9.09 11.1301 9.01 10.8901 9.01C10.6501 9.01 10.4501 9.09 10.2801 9.26C10.1101 9.43 10.0301 9.63 10.0301 9.87V13.89C10.0301 14.13 10.1101 14.33 10.2801 14.5C10.4501 14.67 10.6501 14.75 10.8901 14.75C11.1301 14.75 11.3301 14.67 11.5001 14.5C11.6701 14.33 11.7501 14.13 11.7501 13.89ZM15.7701 13.89V9.87C15.7701 9.63 15.6901 9.43 15.5201 9.26C15.3501 9.09 15.1501 9.01 14.9101 9.01C14.6701 9.01 14.4701 9.09 14.3001 9.26C14.1301 9.43 14.0501 9.63 14.0501 9.87V13.89C14.0501 14.13 14.1301 14.33 14.3001 14.5C14.4701 14.67 14.6701 14.75 14.9101 14.75C15.1501 14.75 15.3501 14.67 15.5201 14.5C15.6901 14.33 15.7701 14.13 15.7701 13.89Z"></path></svg></span><span class="star-end"><svg fill="currentColor" height="11" viewBox="0 0 11 11" width="11" xmlns="http://www.w3.org/2000/svg"><path d="M4.23539 2.16758C4.31585 1.75612 4.83196 1.6292 5.09362 1.92958L6.64272 3.65653L8.92869 3.36308C9.33686 3.31475 9.62105 3.7548 9.41431 4.12022L8.26344 6.1095L9.24532 8.18833C9.41411 8.56311 9.07604 8.98116 8.67962 8.89652L6.43413 8.40043L4.74982 9.98635C4.45362 10.2631 3.94852 10.0788 3.90018 9.67067L3.67114 7.38306L1.6601 6.27065C1.29468 6.06391 1.31163 5.54034 1.6864 5.37155L3.81205 4.44154L4.23539 2.16758Z" fill-opacity="0.5"></path></svg></span></button></a>',
-    podscarouselthirdslide: '<a class="pod has-tagline" href="https://www.thetoyshop.com/brands/hot-wheels" title="Hot Wheels" data-element-type="homepage-expanded-carousel" data-promotion-name="Pod-Hot Wheels" data-promotion-index="1" data-gtm-vis-first-on-screen8511273_2666="2415687" data-gtm-vis-total-visible-time8511273_2666="100" data-gtm-vis-has-fired8511273_2666="1" style="background: linear-gradient(213deg, rgb(0, 86, 173) 0%, rgb(0, 153, 215) 35%, rgb(0, 204, 239) 100%); color: rgb(255, 255, 255);"><div class="pod-image-container"><img class="item" alt="Hot Wheels" title="Hot Wheels" src="https://www.thetoyshop.com/medias/Web-Homepage-Pod-w350x350h-HotWheels.jpg?context=bWFzdGVyfHJvb3R8MjEwMTI4fGltYWdlL2pwZWd8YURNeEwyZzVaUzh4TWpZeE16WTFOVE01TmpNNE1pOVhaV0lnU0c5dFpYQmhaMlVnVUc5a0xYY3pOVEI0TXpVd2FGOUliM1JYYUdWbGJITXVhbkJufGIwNjdhZDE4M2U0YzE1MjYyYjQ4YjYwMzgyNDQ5MzA1NmNlOWYzYjUxZTQ0N2Q2NDc2NTViZWI4ZDQwMjVmNWQ"><div class="logo undefined"><img alt="Hot Wheels Logo" title="Hot Wheels Logo" src="https://www.thetoyshop.com/medias/Hot-Wheels-logo-2-.png?context=bWFzdGVyfHJvb3R8NDE4NjR8aW1hZ2UvcG5nfGFHWXpMMmc1TkM4eE1qWXlNREV4T1RJeE1qQTJNaTlJYjNRdFYyaGxaV3h6TFd4dloyOGdLRElwTG5CdVp3fDhhYzNhMDI1OTcyNjAzY2U3ZTYxNmRiZWNkZjRjNDkzNGRmZGYzYTcxYWMwMTVhZGZjZGUwOTdiMWVjOWU5NjI" style="height: 50px;"></div></div><span>Up To 20% Off</span><button class="hero-button" href="https://www.thetoyshop.com/brands/hot-wheels"><span class="swoosh-container"><span class="star-start"><svg fill="currentColor" height="11" viewBox="0 0 11 11" width="11" xmlns="http://www.w3.org/2000/svg"><path d="M4.23539 2.16758C4.31585 1.75612 4.83196 1.6292 5.09362 1.92958L6.64272 3.65653L8.92869 3.36308C9.33686 3.31475 9.62105 3.7548 9.41431 4.12022L8.26344 6.1095L9.24532 8.18833C9.41411 8.56311 9.07604 8.98116 8.67962 8.89652L6.43413 8.40043L4.74982 9.98635C4.45362 10.2631 3.94852 10.0788 3.90018 9.67067L3.67114 7.38306L1.6601 6.27065C1.29468 6.06391 1.31163 5.54034 1.6864 5.37155L3.81205 4.44154L4.23539 2.16758Z" fill-opacity="0.5"></path></svg></span><span class="swoosh"> </span></span>Upto 20% OFF<span class="basket-icon"><svg fill="currentColor" height="18" viewBox="0 0 22 18" width="22" xmlns="http://www.w3.org/2000/svg"><path d="M21.2401 7.57V8.14C21.2401 8.38 21.1601 8.58 20.9901 8.75C20.8201 8.92 20.6201 9 20.3801 9H20.0901L19.1601 15.57C19.0901 16 18.8901 16.35 18.5701 16.63C18.2501 16.9 17.8701 17.04 17.4401 17.04H4.36006C3.93006 17.04 3.55006 16.9 3.23006 16.63C2.91006 16.35 2.71006 16 2.64006 15.57L1.71006 9H1.42006C1.18006 9 0.980059 8.92 0.810059 8.75C0.640059 8.58 0.560059 8.38 0.560059 8.14V7.57C0.560059 7.33 0.640059 7.13 0.810059 6.96C0.980059 6.79 1.18006 6.71 1.42006 6.71H3.83006L7.67006 1.43C7.86006 1.17 8.11006 1.01 8.42006 0.960001C8.73006 0.910001 9.02006 0.980002 9.28006 1.18C9.54006 1.37 9.70006 1.62 9.75006 1.93C9.80006 2.24 9.73006 2.53 9.53006 2.79L6.66006 6.71H15.1401L12.2701 2.79C12.0801 2.53 12.0101 2.24 12.0501 1.93C12.1001 1.62 12.2501 1.37 12.5201 1.18C12.7801 0.990002 13.0701 0.920001 13.3801 0.960001C13.6901 1.01 13.9401 1.16 14.1301 1.43L17.9701 6.71H20.3801C20.6201 6.71 20.8201 6.79 20.9901 6.96C21.1601 7.13 21.2401 7.33 21.2401 7.57ZM7.73006 13.89V9.87C7.73006 9.63 7.65006 9.43 7.48006 9.26C7.31006 9.09 7.11006 9.01 6.87006 9.01C6.63006 9.01 6.43006 9.09 6.26006 9.26C6.09006 9.43 6.01006 9.63 6.01006 9.87V13.89C6.01006 14.13 6.09006 14.33 6.26006 14.5C6.43006 14.67 6.63006 14.75 6.87006 14.75C7.11006 14.75 7.31006 14.67 7.48006 14.5C7.65006 14.33 7.73006 14.13 7.73006 13.89ZM11.7501 13.89V9.87C11.7501 9.63 11.6701 9.43 11.5001 9.26C11.3301 9.09 11.1301 9.01 10.8901 9.01C10.6501 9.01 10.4501 9.09 10.2801 9.26C10.1101 9.43 10.0301 9.63 10.0301 9.87V13.89C10.0301 14.13 10.1101 14.33 10.2801 14.5C10.4501 14.67 10.6501 14.75 10.8901 14.75C11.1301 14.75 11.3301 14.67 11.5001 14.5C11.6701 14.33 11.7501 14.13 11.7501 13.89ZM15.7701 13.89V9.87C15.7701 9.63 15.6901 9.43 15.5201 9.26C15.3501 9.09 15.1501 9.01 14.9101 9.01C14.6701 9.01 14.4701 9.09 14.3001 9.26C14.1301 9.43 14.0501 9.63 14.0501 9.87V13.89C14.0501 14.13 14.1301 14.33 14.3001 14.5C14.4701 14.67 14.6701 14.75 14.9101 14.75C15.1501 14.75 15.3501 14.67 15.5201 14.5C15.6901 14.33 15.7701 14.13 15.7701 13.89Z"></path></svg></span><span class="star-end"><svg fill="currentColor" height="11" viewBox="0 0 11 11" width="11" xmlns="http://www.w3.org/2000/svg"><path d="M4.23539 2.16758C4.31585 1.75612 4.83196 1.6292 5.09362 1.92958L6.64272 3.65653L8.92869 3.36308C9.33686 3.31475 9.62105 3.7548 9.41431 4.12022L8.26344 6.1095L9.24532 8.18833C9.41411 8.56311 9.07604 8.98116 8.67962 8.89652L6.43413 8.40043L4.74982 9.98635C4.45362 10.2631 3.94852 10.0788 3.90018 9.67067L3.67114 7.38306L1.6601 6.27065C1.29468 6.06391 1.31163 5.54034 1.6864 5.37155L3.81205 4.44154L4.23539 2.16758Z" fill-opacity="0.5"></path></svg></span></button></a>',
-    podscarouselfourthslide: '',
-    podscarouselfifthslide: '',
-    podscarouselsixthslide: '',
-    podscarouselsevthslide: '',
-    podscarouseleighthslide: '',
-    podscarouselninethslide: '',
-    podscarouseltenthslide: '',
-  },
+  user: 'stories',
+
+  // Slide 1
+  positionNumber1: 1,
+  image1: '',
+  imagealt1: '',
+  tagline1: '',
+  backgroundcolor1: '',
+  textcolor1: '',
+  link1: '',
+  linktext1: '',
+  buttonbackgroundcolor1: '',
+  buttontextcolor1: '',
+  pod1buttonicon: '',
+  logoimage1: '',
+  logoimagealt1: '',
+  logoheight1: '',
+  position1: '',
+  dataElementType1: '',
+  dataPromotionName1: '',
+  dataPromotionIndex1: '',
+
+  // Slide 2
+  positionNumber2: 2,
+  image2: '',
+  imagealt2: '',
+  tagline2: '',
+  backgroundcolor2: '',
+  textcolor2: '',
+  link2: '',
+  linktext2: '',
+  buttonbackgroundcolor2: '',
+  buttontextcolor2: '',
+  pod2buttonicon: '',
+  logoimage2: '',
+  logoimagealt2: '',
+  logoheight2: '',
+  position2: '',
+  dataElementType2: '',
+  dataPromotionName2: '',
+  dataPromotionIndex2: '',
+
+  // Slide 3
+  positionNumber3: 3,
+  image3: '',
+  imagealt3: '',
+  tagline3: '',
+  backgroundcolor3: '',
+  textcolor3: '',
+  link3: '',
+  linktext3: '',
+  buttonbackgroundcolor3: '',
+  buttontextcolor3: '',
+  pod3buttonicon: '',
+  logoimage3: '',
+  logoimagealt3: '',
+  logoheight3: '',
+  position3: '',
+  dataElementType3: '',
+  dataPromotionName3: '',
+  dataPromotionIndex3: '',
+
+  // Slide 4
+  positionNumber4: 4,
+  image4: '',
+  imagealt4: '',
+  tagline4: '',
+  backgroundcolor4: '',
+  textcolor4: '',
+  link4: '',
+  linktext4: '',
+  buttonbackgroundcolor4: '',
+  buttontextcolor4: '',
+  pod4buttonicon: '',
+  logoimage4: '',
+  logoimagealt4: '',
+  logoheight4: '',
+  position4: '',
+  dataElementType4: '',
+  dataPromotionName4: '',
+  dataPromotionIndex4: '',
+
+  // Slide 5
+  positionNumber5: 5,
+  image5: '',
+  imagealt5: '',
+  tagline5: '',
+  backgroundcolor5: '',
+  textcolor5: '',
+  link5: '',
+  linktext5: '',
+  buttonbackgroundcolor5: '',
+  buttontextcolor5: '',
+  pod5buttonicon: '',
+  logoimage5: '',
+  logoimagealt5: '',
+  logoheight5: '',
+  position5: '',
+  dataElementType5: '',
+  dataPromotionName5: '',
+  dataPromotionIndex5: '',
+
+  // Slide 6
+  positionNumber6: 6,
+  image6: '',
+  imagealt6: '',
+  tagline6: '',
+  backgroundcolor6: '',
+  textcolor6: '',
+  link6: '',
+  linktext6: '',
+  buttonbackgroundcolor6: '',
+  buttontextcolor6: '',
+  pod6buttonicon: '',
+  logoimage6: '',
+  logoimagealt6: '',
+  logoheight6: '',
+  position6: '',
+  dataElementType6: '',
+  dataPromotionName6: '',
+  dataPromotionIndex6: '',
+
+  // Slide 7
+  positionNumber7: 7,
+  image7: '',
+  imagealt7: '',
+  tagline7: '',
+  backgroundcolor7: '',
+  textcolor7: '',
+  link7: '',
+  linktext7: '',
+  buttonbackgroundcolor7: '',
+  buttontextcolor7: '',
+  pod7buttonicon: '',
+  logoimage7: '',
+  logoimagealt7: '',
+  logoheight7: '',
+  position7: '',
+  dataElementType7: '',
+  dataPromotionName7: '',
+  dataPromotionIndex7: '',
+
+  // Slide 8
+  positionNumber8: 8,
+  image8: '',
+  imagealt8: '',
+  tagline8: '',
+  backgroundcolor8: '',
+  textcolor8: '',
+  link8: '',
+  linktext8: '',
+  buttonbackgroundcolor8: '',
+  buttontextcolor8: '',
+  pod8buttonicon: '',
+  logoimage8: '',
+  logoimagealt8: '',
+  logoheight8: '',
+  position8: '',
+  dataElementType8: '',
+  dataPromotionName8: '',
+  dataPromotionIndex8: '',
+
+  // Slide 9
+  positionNumber9: 9,
+  image9: '',
+  imagealt9: '',
+  tagline9: '',
+  backgroundcolor9: '',
+  textcolor9: '',
+  link9: '',
+  linktext9: '',
+  buttonbackgroundcolor9: '',
+  buttontextcolor9: '',
+  pod9buttonicon: '',
+  logoimage9: '',
+  logoimagealt9: '',
+  logoheight9: '',
+  position9: '',
+  dataElementType9: '',
+  dataPromotionName9: '',
+  dataPromotionIndex9: '',
+
+  // Slide 10
+  positionNumber10: 10,
+  image10: '',
+  imagealt10: '',
+  tagline10: '',
+  backgroundcolor10: '',
+  textcolor10: '',
+  link10: '',
+  linktext10: '',
+  buttonbackgroundcolor10: '',
+  buttontextcolor10: '',
+  pod10buttonicon: '',
+  logoimage10: '',
+  logoimagealt10: '',
+  logoheight10: '',
+  position10: '',
+  dataElementType10: '',
+  dataPromotionName10: '',
+  dataPromotionIndex10: '',
+},
+
+  render: function Render(args) {
+  const [currentArgs, updateArgs] = useArgs();
+
+  const isLoadingRef = useRef(false);       // prevents writing during load
+  const lastUserRef = useRef(args.user);    // track selected user
+  const lastSyncedData = useRef({});        // prevent write loops
+
+  // -------------------------------------------------------
+  // 1. LOAD DATA FROM SELECTED USER
+  // -------------------------------------------------------
+  useEffect(() => {
+    const load = async () => {
+      isLoadingRef.current = true;  // BLOCK updates
+      lastUserRef.current = args.user;
+
+      try {
+        const docRef = doc(db, args.user, "podscarousel");
+        const snap = await getDoc(docRef);
+
+        if (snap.exists()) {
+          const firestoreData = snap.data();
+          lastSyncedData.current = firestoreData;
+
+          // Replace storybook args with loaded data
+          updateArgs({
+            ...currentArgs,
+            ...firestoreData,
+            user: args.user,
+          });
+        }
+      } catch (e) {
+        console.error("Firestore load error:", e);
+      }
+
+      isLoadingRef.current = false; // allow updates again
+    };
+
+    load();
+  }, [args.user]);
+
+
+  // -------------------------------------------------------
+  // 2. SYNC ONLY FIELD CHANGES (NOT USER CHANGE)
+  // -------------------------------------------------------
+  useEffect(() => {
+    if (isLoadingRef.current) return; // Don't sync during load
+
+    const selectedUser = lastUserRef.current;
+
+    // Don't sync if this change is caused by selecting a new user
+    if (currentArgs.user !== selectedUser) return;
+
+    // Remove user field before writing
+    const { user, ...fields } = currentArgs;
+
+    // Prevent re-writing unchanged data
+    const prevFields = lastSyncedData.current;
+    const changed = Object.entries(fields).some(
+      ([k, v]) => prevFields[k] !== v
+    );
+    if (!changed) return;
+
+    lastSyncedData.current = fields;
+
+    const send = async () => {
+      try {
+        const docRef = doc(db, selectedUser, "podscarousel");
+        await updateDoc(docRef, fields);
+        console.log("UPDATED:", selectedUser, fields);
+      } catch (e) {
+        console.error("Firestore update error:", e);
+      }
+    };
+
+    send();
+  }, [currentArgs]);
+  
+      return <PodsCarousel {...args} />;
+    },
 };

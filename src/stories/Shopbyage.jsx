@@ -1,8 +1,10 @@
 import PropTypes from "prop-types";
+import "./consistency.css";
 
 /** Primary UI component for user interaction */
 export const ShopByAge = ({
   images,
+  modulebackgroundcolor,
   roundal1image,
   roundal1background,
   roundal1color,
@@ -69,35 +71,32 @@ export const ShopByAge = ({
       <style>
         {`
     .shop-by-age-container {
-        background-color: #dbe3ff;
+        background-color: var(--shop-by-age-bg);
     }
     .shop-by-age {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
-        gap: 10px;
-        padding: 40px 20px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      padding: 0px 20px 0px;
+      justify-content: center; /* centers items if row isn't full */
+      align-content: center;
+    }
+      .shop-by-age .flickity-prev-next-button {
+          width: 24px;
+          height: 24px;
+          box-shadow: none;
+      }
+
+    .shop-by-age .carousel-cell {
+        width: calc(100% / 4);
+        padding: 20px 5px 10px;
     }
 
     .shop-by-age a {
-        transition: all 0.3s;
-        width: 100%;
-    }
-
-    .shop-by-age a:hover {
-        transform: translateY(-5px) rotate(5deg);
-        scale: 1.05;
-    }
-
-    .shop-by-age a img {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-
-    .shop-by-age.not-images a {
         display: flex;
+        width: 100%;
         flex-direction: column;
         align-items: center;
         justify-content: center;
@@ -114,32 +113,101 @@ export const ShopByAge = ({
         text-shadow: 0px 0px 4px rgba(0,0,0,0.25);
     }
 
-    @media (min-width: 769px) {
-        .shop-by-age {
-            gap: 40px;
-        }
-        .shop-by-age.not-images a {
+    .shop-by-age a.red {
+        background-color: #F23043;
+    }
+
+    .shop-by-age a.purple {
+        background-color: #9116C4;
+    }
+
+    .shop-by-age a.blue {
+        background-color: #2AB2D1;
+    }
+
+    .shop-by-age a.light-green {
+        background-color: #23C166;
+    }
+
+    .shop-by-age a.green {
+        background-color: #067F3D;
+    }
+
+    .shop-by-age a.black {
+    background-color: #000000;
+    }
+
+    .shop-by-age a:hover {
+        box-shadow: 0 0 15px rgba(3,33,33,.4);
+        scale: 1.05;
+    }
+
+    .shop-by-age a img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .shop-by-age span {
+        display: block;
+        font-size: 10px;
+    }
+
+    @media (min-width: 768px) {
+      .shop-by-age .carousel-cell {
+        width: calc(100% / 7);
+        padding: 40px 10px 20px;
+    }
+        .shop-by-age a {
             font-size: 28px;
         }
 
-        .shop-by-age.not-images span {
+        .shop-by-age span {
             font-size: 20px;
         }
     }
 
     @media (min-width: 1024x) {
-        .shop-by-age.not-images a {
+        .shop-by-age a {
             font-size: 34px;
         }
 
-        .shop-by-age.not-images span {
+        .shop-by-age span {
             font-size: 30px;
         }
     }
+
+    /* enable Flickity by default */
+.shop-by-age:after {
+  content: 'flickity';
+  display: none; /* hide :after */
+}
+
+@media (min-width: 768px) {
+  /* disable Flickity for large devices */
+  .shop-by-age:after {
+    content: '';
+  }
+
+  .shop-by-age {
+    display: flex;
+  }
+}
+
+.shop-by-age.images a {
+box-shadow: none;
+}
         `}
       </style>
-      <div class="shop-by-age-container">
-        <div class={`shop-by-age ${!images && 'not-images'}`}>
+      <div class="shop-by-age-container"
+        style={{
+          backgroundColor: modulebackgroundcolor,
+        }}
+      >
+        <div class={`shop-by-age js-flickity flickity-enabled is-draggable ${images && 'images'}`} 
+    data-flickity='{ "autoPlay": true, "wrapAround": true, "cellAlign": "left", "watchCSS": true }'>
+          {roundal1link &&
+          <div class="carousel-cell">
           <a
             href={roundal1link}
             title={roundal1alt}
@@ -159,7 +227,11 @@ export const ShopByAge = ({
             </>
             }
           </a>
+          </div>
+          }
 
+          {roundal2link &&
+          <div class="carousel-cell">
           <a
             href={roundal2link}
             title={roundal2alt}
@@ -179,7 +251,10 @@ export const ShopByAge = ({
             </>
             }
           </a>
-
+          </div>
+          }
+          {roundal3link &&
+          <div class="carousel-cell">
           <a
             href={roundal3link}
             title={roundal3alt}
@@ -200,72 +275,83 @@ export const ShopByAge = ({
             </>
             }
           </a>
+          </div>
+          }
+          {roundal4link &&
+          <div class="carousel-cell">
+            <a
+              href={roundal4link}
+              title={roundal4alt}
+              data-element-type={roundal4dataelementtype}
+              data-promotion-index={roundal4datapromotionindex}
+              data-promotion-name={roundal4datapromotionname}
+              style={{background: images ? 'transparent' : roundal4background, color: roundal4color}}
+            >
+              {images && <img
+                src={roundal4image}
+                alt={roundal4alt}
+              />}
+              {!images &&
+              <>
+                {roundal4age}
+                <span>{roundal4textunderage}</span>
+              </>
+              }
+            </a>
+            </div>
+          }
+          {roundal5link &&
+          <div class="carousel-cell">
+            <a
+              href={roundal5link}
+              title={roundal5alt}
+              data-element-type={roundal5dataelementtype}
+              data-promotion-index={roundal5datapromotionindex}
+              data-promotion-name={roundal5datapromotionname}
+              style={{background: images ? 'transparent' : roundal5background, color: roundal5color}}
+            >
+              {images && 
+                <img
+                  src={roundal5image}
+                  alt={roundal5alt}
+                />
+              }
 
-          <a
-            href={roundal4link}
-            title={roundal4alt}
-            data-element-type={roundal4dataelementtype}
-            data-promotion-index={roundal4datapromotionindex}
-            data-promotion-name={roundal4datapromotionname}
-            style={{background: images ? 'transparent' : roundal4background, color: roundal4color}}
-          >
-            {images && <img
-              src={roundal4image}
-              alt={roundal4alt}
-            />}
-             {!images &&
-            <>
-              {roundal4age}
-              <span>{roundal4textunderage}</span>
-            </>
-            }
-          </a>
+              {!images &&
+              <>
+                {roundal5age}
+                <span>{roundal5textunderage}</span>
+              </>
+              }
+            </a>
+            </div>
+          }
+          {roundal6link &&
+          <div class="carousel-cell">
+            <a
+              href={roundal6link}
+              title={roundal6alt}
+              data-element-type={roundal6dataelementtype}
+              data-promotion-index={roundal6datapromotionindex}
+              data-promotion-name={roundal6datapromotionname}
+              style={{background: images ? 'transparent' : roundal6background, color: roundal6color}}
+            >
+              {images && 
+                <img
+                  src={roundal6image}
+                  alt={roundal6alt}
+                />
+              }
 
-          <a
-            href={roundal5link}
-            title={roundal5alt}
-            data-element-type={roundal5dataelementtype}
-            data-promotion-index={roundal5datapromotionindex}
-            data-promotion-name={roundal5datapromotionname}
-            style={{background: images ? 'transparent' : roundal5background, color: roundal5color}}
-          >
-            {images && 
-              <img
-                src={roundal5image}
-                alt={roundal5alt}
-              />
-            }
-
-             {!images &&
-            <>
-              {roundal5age}
-              <span>{roundal5textunderage}</span>
-            </>
-            }
-          </a>
-
-          <a
-            href={roundal6link}
-            title={roundal6alt}
-            data-element-type={roundal6dataelementtype}
-            data-promotion-index={roundal6datapromotionindex}
-            data-promotion-name={roundal6datapromotionname}
-            style={{background: images ? 'transparent' : roundal6background, color: roundal6color}}
-          >
-            {images && 
-              <img
-                src={roundal6image}
-                alt={roundal6alt}
-              />
-            }
-
-             {!images &&
-            <>
-              {roundal6age}
-              <span>{roundal6textunderage}</span>
-            </>
-            }
-          </a>
+              {!images &&
+              <>
+                {roundal6age}
+                <span>{roundal6textunderage}</span>
+              </>
+              }
+            </a>
+            </div>
+          }
         </div>
       </div>
     </>
@@ -275,6 +361,7 @@ export const ShopByAge = ({
 ShopByAge.propTypes = {
   /** contents */
   images: PropTypes.bool,
+  modulebackgroundcolor: PropTypes.string,
   roundal1image: PropTypes.string,
   roundal1background: PropTypes.string,
   roundal1color: PropTypes.string,
