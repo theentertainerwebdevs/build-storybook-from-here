@@ -140,6 +140,7 @@ const defaultStores = [
   'Telford',
   'The O2 London',
   'Torquay',
+  'Trafford Center',
   'Truro',
   'Uxbridge',
   'Walsall',

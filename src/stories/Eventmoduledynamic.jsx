@@ -152,6 +152,7 @@ export const EventModule = ({
     { name: "Telford", link: "https://www.thetoyshop.com/store/telford" },
     { name: "The O2 London", link: "https://www.thetoyshop.com/store/o2-arena" },
     { name: "Torquay", link: "https://www.thetoyshop.com/store/torquay" },
+    { name: "Trafford Center", link: "https://www.thetoyshop.com/store/manchester-trafford-centre" },
     { name: "Truro", link: "https://www.thetoyshop.com/store/truro" },
     { name: "Uxbridge", link: "https://www.thetoyshop.com/store/uxbridge" },
     { name: "Walsall", link: "https://www.thetoyshop.com/store/walsall" },

@@ -3,17 +3,47 @@ import PropTypes from "prop-types";
 import { CTAButton } from "./CTAButton";
 import "./consistency.css";
 
+
+
 const getYouTubeEmbedUrl = (url) => {
   if (!url || typeof url !== "string") return null;
 
   const match = url.match(
-    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    /(?:youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
   );
 
-  return match
-    ? `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1&loop=1&playlist=${match[1]}&controls=0&rel=0&playsinline=1`
-    : null;
+  if (!match) return null;
+
+  const videoId = match[1];
+
+  // Extract all parameters from the original URL
+  const queryString = url.split("?").slice(1).join("?");
+  const params = new URLSearchParams(queryString);
+
+  // Remove the video ID parameter - it isn't needed in the embed URL
+  params.delete("v");
+
+  // Default playback settings
+  const defaults = {
+    autoplay: "1",
+    mute: "1",
+    loop: "1",
+    playlist: videoId,
+    controls: "0",
+    rel: "0",
+    playsinline: "1",
+  };
+
+  Object.keys(defaults).forEach((key) => {
+    if (!params.has(key)) {
+      params.set(key, defaults[key]);
+    }
+  });
+
+  return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
 };
+
+
 
 export const HubsMediaBanner = ({
   link,

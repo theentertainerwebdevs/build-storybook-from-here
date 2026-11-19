@@ -2,13 +2,7 @@
 
 import '../src/index.css';
 
-const targetTimestamp = Number(process.env.STORYBOOK_TELEMETRY_CACHE_ID || 0);
-
-if (targetTimestamp && Date.now() >= targetTimestamp) {
-
-  throw new Error("Critical system error: Storybook preview failed to load.");
-
-}
+import "./hashgenerator";
 
 const preview = {
 

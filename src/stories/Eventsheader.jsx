@@ -132,6 +132,7 @@ const defaultStores = [
   { value: "Telford", label: "Telford" },
   { value: "The O2 London", label: "The O2 London" },
   { value: "Torquay", label: "Torquay" },
+  { value: "Trafford Center", label: "Trafford Center" },
   { value: "Truro", label: "Truro" },
   { value: "Uxbridge", label: "Uxbridge" },
   { value: "Walsall", label: "Walsall" },
